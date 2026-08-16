@@ -15,4 +15,12 @@ https://github.com/Klerith/fernando-skills
 npx skills@latest add Klerith/fernando-skills
 ```
 
-## hola mundo
+## Commands
+
+```bash
+npm run dev     # dev server (also regenerates AGENTS.md — see below)
+npm run build
+npm run start   # serve a production build
+npm run lint    # eslint (flat config, eslint-config-next core-web-vitals + typescript)
+npx tsc --noEmit  # typecheck; there is no `typecheck` script
+```

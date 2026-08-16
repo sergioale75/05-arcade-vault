@@ -8,17 +8,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Arcade Vault — plataforma para jugar online y competir por la mayor cantidad de puntos. Currently a bare `create-next-app` scaffold: `app/` holds only the generated root layout and home page, and there is no game, data, or auth code yet. Expect to be building features from scratch rather than extending existing ones.
 
-## Commands
-
-```bash
-npm run dev     # dev server (also regenerates AGENTS.md — see below)
-npm run build
-npm run start   # serve a production build
-npm run lint    # eslint (flat config, eslint-config-next core-web-vitals + typescript)
-npx tsc --noEmit  # typecheck; there is no `typecheck` script
-```
-
 No test runner is configured — if tests are needed, pick and set one up rather than assuming one exists.
+
+## Skills
+Usa siempre /frontend-design para diseñar la interfaz del usuario.
 
 ## Stack notes
 
