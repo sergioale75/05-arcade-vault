@@ -49,6 +49,12 @@
   --font-mono: var(--mono);
 }
 
+/* Tailwind's preflight resets headings to font-weight: inherit. The prototype
+   relied on the browser default (bold), which Press Start 2P — a single-weight
+   family — renders as synthetic bold. Restore it or every title reads thinner
+   than the reference. */
+h1, h2, h3, h4, h5, h6 { font-weight: bold; }
+
 * { box-sizing: border-box; }
 
 html, body, #root {
@@ -128,6 +134,16 @@ a { color: inherit; text-decoration: none; }
 /* ===== app frame ===== */
 #root { position: relative; z-index: 2; display: flex; flex-direction: column; min-height: 100%; }
 .av-main { flex: 1; }
+/* Footer: same values the prototype applied inline in app.jsx. */
+.av-footer {
+  border-top: 1px solid var(--line);
+  padding: 20px 32px;
+  text-align: center;
+  color: var(--ink-faint);
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+}
 
 /* ===== pixel + neon text ===== */
 .pixel { font-family: var(--pixel); letter-spacing: 0.04em; line-height: 1.25; text-transform: uppercase; }
@@ -453,7 +469,10 @@ a { color: inherit; text-decoration: none; }
 .cover-snake::after {
   content: "";
   position: absolute; inset: 0;
-  background-image:
+  /* Fixes a bug in the reference stylesheet: this list uses `position / size`
+     syntax, which is only valid in the `background` shorthand. Declared as
+     `background-image` the whole rule is invalid and the snake never draws. */
+  background:
     radial-gradient(circle at 70% 50%, var(--magenta) 0 6px, transparent 7px),
     linear-gradient(90deg, var(--green) 0 40px, transparent 40px) 20% 50% / 200px 12px no-repeat,
     linear-gradient(90deg, var(--green) 0 12px, transparent 12px) calc(20% + 40px) calc(50% - 12px)/12px 12px no-repeat,
