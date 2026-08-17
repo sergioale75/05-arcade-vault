@@ -1,5 +1,6 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
+.playwright-screenshoots/*
+.playwright-mcp/*
 # dependencies
 /node_modules
 /.pnp
@@ -39,3 +40,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# playwright screenshots and traces
+.playwright-screenshoots
+
+# shell crash dumps
+*.stackdump
