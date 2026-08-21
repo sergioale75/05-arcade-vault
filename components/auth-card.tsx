@@ -17,12 +17,12 @@ export function AuthCard() {
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     signIn(user);
-    router.push("/");
+    router.push("/juegos");
   };
 
   const playAsGuest = () => {
     signOut();
-    router.push("/");
+    router.push("/juegos");
   };
 
   return (
