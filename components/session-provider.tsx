@@ -1,45 +1,87 @@
 "use client";
 
-import { createContext, useCallback, useContext, useSyncExternalStore } from "react";
-import {
-  appendScore,
-  getServerUserSnapshot,
-  getUserSnapshot,
-  normalizeName,
-  subscribeUser,
-  writeUser,
-  type SavedScore,
-  type User,
-} from "@/lib/session";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
+import { submitScore } from "@/lib/scores";
+
+type User = { name: string };
+
+type AuthResult = { error: string | null };
 
 type SessionValue = {
   user: User | null;
-  signIn: (name: string) => void;
-  signOut: () => void;
-  saveScore: (entry: Omit<SavedScore, "at">) => void;
+  loading: boolean;
+  signIn: (email: string, password: string) => Promise<AuthResult>;
+  signUp: (email: string, password: string, displayName: string) => Promise<AuthResult>;
+  signOut: () => Promise<void>;
+  saveScore: (gameId: string, score: number) => Promise<AuthResult>;
 };
 
 const SessionContext = createContext<SessionValue | null>(null);
 
 export function SessionProvider({ children }: { children: React.ReactNode }) {
-  // localStorage is an external store: the server snapshot is always guest, so the
-  // markup matches on hydration and the real session lands on the next render.
-  const user = useSyncExternalStore(subscribeUser, getUserSnapshot, getServerUserSnapshot);
+  const supabase = useMemo(() => createClient(), []);
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const signIn = useCallback((name: string) => {
-    writeUser({ name: normalizeName(name) });
-  }, []);
+  const loadProfile = useCallback(
+    async (userId: string) => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("display_name")
+        .eq("id", userId)
+        .single();
+      setUser(data ? { name: data.display_name } : null);
+    },
+    [supabase],
+  );
 
-  const signOut = useCallback(() => {
-    writeUser(null);
-  }, []);
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      if (data.user) loadProfile(data.user.id).finally(() => setLoading(false));
+      else setLoading(false);
+    });
 
-  const saveScore = useCallback((entry: Omit<SavedScore, "at">) => {
-    appendScore(entry);
-  }, []);
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) loadProfile(session.user.id);
+      else setUser(null);
+    });
+
+    return () => listener.subscription.unsubscribe();
+  }, [supabase, loadProfile]);
+
+  const signIn = useCallback(
+    async (email: string, password: string): Promise<AuthResult> => {
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      return { error: error?.message ?? null };
+    },
+    [supabase],
+  );
+
+  const signUp = useCallback(
+    async (email: string, password: string, displayName: string): Promise<AuthResult> => {
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { data: { display_name: displayName } },
+      });
+      return { error: error?.message ?? null };
+    },
+    [supabase],
+  );
+
+  const signOut = useCallback(async () => {
+    await supabase.auth.signOut();
+    setUser(null);
+  }, [supabase]);
+
+  const saveScore = useCallback(
+    (gameId: string, score: number) => submitScore(supabase, gameId, score),
+    [supabase],
+  );
 
   return (
-    <SessionContext.Provider value={{ user, signIn, signOut, saveScore }}>
+    <SessionContext.Provider value={{ user, loading, signIn, signUp, signOut, saveScore }}>
       {children}
     </SessionContext.Provider>
   );

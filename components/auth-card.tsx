@@ -6,22 +6,34 @@ import { useSession } from "@/components/session-provider";
 
 export function AuthCard() {
   const router = useRouter();
-  const { signIn, signOut } = useSession();
+  const { signIn, signUp, signOut } = useSession();
 
   const [tab, setTab] = useState<"in" | "up">("in");
   const [user, setUser] = useState("");
   const [pass, setPass] = useState("");
   const [email, setEmail] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
-  // Mock auth: no credentials are checked, any name gets you into the vault.
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    signIn(user);
+    setError(null);
+    setSubmitting(true);
+
+    const result = tab === "in" ? await signIn(email, pass) : await signUp(email, pass, user);
+
+    setSubmitting(false);
+
+    if (result.error) {
+      setError(result.error);
+      return;
+    }
+
     router.push("/juegos");
   };
 
-  const playAsGuest = () => {
-    signOut();
+  const playAsGuest = async () => {
+    await signOut();
     router.push("/juegos");
   };
 
@@ -45,37 +57,49 @@ export function AuthCard() {
         </div>
 
         <div className="auth-tabs">
-          <button className={tab === "in" ? "on" : ""} onClick={() => setTab("in")}>
+          <button
+            className={tab === "in" ? "on" : ""}
+            onClick={() => {
+              setTab("in");
+              setError(null);
+            }}
+          >
             INICIAR SESIÓN
           </button>
-          <button className={tab === "up" ? "on" : ""} onClick={() => setTab("up")}>
+          <button
+            className={tab === "up" ? "on" : ""}
+            onClick={() => {
+              setTab("up");
+              setError(null);
+            }}
+          >
             CREAR CUENTA
           </button>
         </div>
 
         <form onSubmit={submit}>
-          <div className="field">
-            <label htmlFor="av-user">Usuario</label>
-            <input
-              id="av-user"
-              value={user}
-              onChange={(e) => setUser(e.target.value)}
-              placeholder="px_kai"
-            />
-          </div>
-
           {tab === "up" && (
             <div className="field slide-in">
-              <label htmlFor="av-email">Correo electrónico</label>
+              <label htmlFor="av-user">Usuario</label>
               <input
-                id="av-email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="jugador@vault.gg"
+                id="av-user"
+                value={user}
+                onChange={(e) => setUser(e.target.value)}
+                placeholder="px_kai"
               />
             </div>
           )}
+
+          <div className="field">
+            <label htmlFor="av-email">Correo electrónico</label>
+            <input
+              id="av-email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="jugador@vault.gg"
+            />
+          </div>
 
           <div className="field">
             <label htmlFor="av-pass">Contraseña</label>
@@ -88,8 +112,22 @@ export function AuthCard() {
             />
           </div>
 
-          <button className="btn lg" type="submit" style={{ width: "100%", marginTop: 8 }}>
-            {tab === "in" ? "ENTRAR AL VAULT" : "CREAR Y JUGAR"}
+          {error && (
+            <div
+              className="mono"
+              style={{ color: "var(--magenta)", fontSize: 12, marginTop: 10, letterSpacing: "0.04em" }}
+            >
+              ▸ {error}
+            </div>
+          )}
+
+          <button
+            className="btn lg"
+            type="submit"
+            disabled={submitting}
+            style={{ width: "100%", marginTop: 8 }}
+          >
+            {submitting ? "UN MOMENTO…" : tab === "in" ? "ENTRAR AL VAULT" : "CREAR Y JUGAR"}
           </button>
         </form>
 

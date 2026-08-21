@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { GameCover } from "@/components/game-cover";
-import { GAMES, getGame, seededScores } from "@/lib/games";
+import { GAMES, getGame } from "@/lib/games";
+import { createClient } from "@/lib/supabase/server";
+import { fetchRanking } from "@/lib/scores";
 
 export function generateStaticParams() {
   return GAMES.map((g) => ({ id: g.id }));
@@ -12,8 +14,8 @@ export default async function GameDetailPage({ params }: PageProps<"/juegos/[id]
   const game = getGame(id);
   if (!game) notFound();
 
-  // Same seed formula the Hall of Fame uses, so both screens agree on a game's ranking.
-  const rows = seededScores(id.length * 23 + 7, 10);
+  const supabase = await createClient();
+  const rows = await fetchRanking(supabase, id, 10);
 
   return (
     <main className="av-main">
@@ -62,18 +64,27 @@ export default async function GameDetailPage({ params }: PageProps<"/juegos/[id]
 
         <aside className="leaderboard">
           <h3>MEJORES MARCAS</h3>
-          {rows.map((r, i) => (
+          {rows.length === 0 ? (
             <div
-              key={r.name + i}
-              className={
-                "lb-row" + (i === 0 ? " top1" : i === 1 ? " top2" : i === 2 ? " top3" : "")
-              }
+              className="mono"
+              style={{ color: "var(--ink-faint)", padding: "24px 0", textAlign: "center" }}
             >
-              <div className="rk">#{String(r.rank).padStart(2, "0")}</div>
-              <div className="pl">{r.name}</div>
-              <div className="sc">{r.score.toLocaleString("es-ES")}</div>
+              AÚN NO HAY MARCAS · SÉ EL PRIMERO
             </div>
-          ))}
+          ) : (
+            rows.map((r, i) => (
+              <div
+                key={r.name + i}
+                className={
+                  "lb-row" + (i === 0 ? " top1" : i === 1 ? " top2" : i === 2 ? " top3" : "")
+                }
+              >
+                <div className="rk">#{String(r.rank).padStart(2, "0")}</div>
+                <div className="pl">{r.name}</div>
+                <div className="sc">{r.score.toLocaleString("es-ES")}</div>
+              </div>
+            ))
+          )}
         </aside>
       </div>
     </main>
