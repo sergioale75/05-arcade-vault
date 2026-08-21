@@ -1,14 +1,20 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { useSession } from "@/components/session-provider";
 
 export function Nav() {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
   const { user, signOut } = useSession();
+
+  const handleSignOut = async () => {
+    await signOut();
+    router.refresh();
+  };
 
   // Library stays lit while browsing a game or playing it, like the prototype did.
   const isLibrary =
@@ -45,7 +51,7 @@ export function Nav() {
         </div>
 
         {user ? (
-          <button className="btn ghost auth-btn" onClick={signOut}>
+          <button className="btn ghost auth-btn" onClick={handleSignOut}>
             {user.name} ▾
           </button>
         ) : (

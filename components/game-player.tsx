@@ -13,11 +13,10 @@ export function GamePlayer({ game }: { game: Game }) {
   const lives = 3;
   const [paused, setPaused] = useState(false);
   const [over, setOver] = useState(false);
-  const [typedName, setTypedName] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
-  // Falls back to the session name until the player types their own initials.
-  const name = typedName ?? user?.name ?? "INVITADO";
+  const name = user?.name ?? "INVITADO";
   // One level per 2500 points, derived rather than tracked in its own state.
   const level = 1 + Math.floor(score / 2500);
 
@@ -124,23 +123,45 @@ export function GamePlayer({ game }: { game: Game }) {
             <div className="final-label">PUNTUACIÓN FINAL</div>
             <div className="final">{score.toLocaleString("es-ES")}</div>
             {!saved ? (
-              <div className="input-row">
-                <input
-                  value={name}
-                  onChange={(e) => setTypedName(e.target.value.toUpperCase().slice(0, 10))}
-                  placeholder="TUS INICIALES"
-                  aria-label="Tus iniciales"
-                />
-                <button
-                  className="btn yellow"
-                  onClick={() => {
-                    saveScore({ game: game.id, score, name });
-                    setSaved(true);
-                  }}
-                >
-                  GUARDAR PUNTUACIÓN
-                </button>
-              </div>
+              user ? (
+                <div className="input-row">
+                  <div
+                    className="mono"
+                    style={{
+                      flex: 1,
+                      display: "flex",
+                      alignItems: "center",
+                      color: "var(--ink)",
+                      fontSize: 14,
+                      letterSpacing: "0.06em",
+                    }}
+                  >
+                    {name}
+                  </div>
+                  <button
+                    className="btn yellow"
+                    disabled={saving}
+                    onClick={async () => {
+                      setSaving(true);
+                      const result = await saveScore(game.id, score);
+                      setSaving(false);
+                      if (!result.error) setSaved(true);
+                    }}
+                  >
+                    {saving ? "GUARDANDO…" : "GUARDAR PUNTUACIÓN"}
+                  </button>
+                </div>
+              ) : (
+                <div className="input-row">
+                  <button
+                    className="btn yellow"
+                    style={{ width: "100%" }}
+                    onClick={() => router.push("/auth")}
+                  >
+                    CREAR CUENTA PARA GUARDAR
+                  </button>
+                </div>
+              )
             ) : (
               <div className="toast-saved">▸ PUNTUACIÓN GUARDADA_</div>
             )}
