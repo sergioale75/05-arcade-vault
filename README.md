@@ -18,9 +18,8 @@ npx skills@latest add Klerith/fernando-skills
 ## Commands
 
 ```bash
-npm run dev     # dev server (also regenerates AGENTS.md — see below)
-npm run build
-npm run start   # serve a production build
-npm run lint    # eslint (flat config, eslint-config-next core-web-vitals + typescript)
-npx tsc --noEmit  # typecheck; there is no `typecheck` script
+npm run dev      # start dev server (port 3000)
+npm run build    # production build
+npm run start    # serve production build
+npm run lint     # ESLint (Next.js config)
 ```
