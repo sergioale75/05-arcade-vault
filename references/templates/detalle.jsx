@@ -1,69 +1,52 @@
-// ===== auth.jsx =====
-const { useState: useStateA } = React;
+// ===== detalle.jsx =====
+const { useMemo: useMemoD } = React;
 
-function Auth({ navigate, onLogin }) {
-  const [tab, setTab] = useStateA("in");
-  const [user, setUser] = useStateA("");
-  const [pass, setPass] = useStateA("");
-  const [email, setEmail] = useStateA("");
-
-  const submit = (e) => {
-    e.preventDefault();
-    onLogin({ name: (user || "PLAYER1").toUpperCase().slice(0, 10) });
-    navigate({ name: "biblioteca" });
-  };
+function GameDetail({ id, navigate }) {
+  const game = useMemoD(() => GAMES.find(g => g.id === id), [id]);
+  const scores = useMemoD(() => seededScores(id.length * 17 + 3, 10), [id]);
+  if (!game) return null;
 
   return (
-    <div className="av-auth-wrap fade-in">
-      <div className="auth-card">
-        <div className="auth-header">
-          <div className="mark"></div>
-          <h2 className="neon-cyan">ARCADE VAULT</h2>
-          <div className="mono" style={{ fontSize: 11, color: "var(--ink-faint)", letterSpacing: "0.16em", marginTop: 6 }}>ACCESO AL SISTEMA · v2.6</div>
+    <div className="av-detail fade-in">
+      <div>
+        <div className="detail-cover">
+          <div className={"cover-bg " + game.cover}></div>
         </div>
-
-        <div className="auth-tabs">
-          <button className={tab === "in" ? "on" : ""} onClick={() => setTab("in")}>INICIAR SESIÓN</button>
-          <button className={tab === "up" ? "on" : ""} onClick={() => setTab("up")}>CREAR CUENTA</button>
-        </div>
-
-        <form onSubmit={submit}>
-          <div className="field">
-            <label>Usuario</label>
-            <input value={user} onChange={(e) => setUser(e.target.value)} placeholder="px_kai" />
+        <div style={{ marginTop: 20 }} className="detail-info">
+          <div className="detail-tags">
+            <span>{game.cat}</span>
+            <span>1 JUGADOR</span>
+            <span>TECLADO / TÁCTIL</span>
+            <span>RETRO 1985</span>
           </div>
-          {tab === "up" && (
-            <div className="field slide-in">
-              <label>Correo electrónico</label>
-              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="jugador@vault.gg" />
-            </div>
-          )}
-          <div className="field">
-            <label>Contraseña</label>
-            <input type="password" value={pass} onChange={(e) => setPass(e.target.value)} placeholder="••••••••" />
+          <h2 className="neon-cyan">{game.title}</h2>
+          <p>{game.long}</p>
+          <div className="stat-strip">
+            <div><div className="l">Partidas</div><div className="v">{game.plays}</div></div>
+            <div><div className="l">Mejor global</div><div className="v" style={{ color: "var(--magenta)", textShadow: "0 0 6px rgba(255,0,110,0.5)" }}>{game.best.toLocaleString("es-ES")}</div></div>
+            <div><div className="l">Dificultad</div><div className="v" style={{ color: "var(--yellow)", textShadow: "0 0 6px rgba(245,255,0,0.5)" }}>★ ★ ★ ☆ ☆</div></div>
           </div>
-
-          <button className="btn lg" type="submit" style={{ width: "100%", marginTop: 8 }}>
-            {tab === "in" ? "ENTRAR AL VAULT" : "CREAR Y JUGAR"}
-          </button>
-        </form>
-
-        <button className="btn ghost" style={{ width: "100%", marginTop: 10 }} onClick={() => { onLogin(null); navigate({ name: "biblioteca" }); }}>
-          JUGAR COMO INVITADO
-        </button>
-
-        <div className="auth-divider">O CONTINÚA CON</div>
-        <div className="social">
-          <button className="btn ghost" type="button">◆  GOOGLE</button>
-          <button className="btn ghost" type="button">▣  GITHUB</button>
-        </div>
-
-        <div style={{ marginTop: 18, textAlign: "center", fontSize: 11, color: "var(--ink-faint)", letterSpacing: "0.1em" }}>
-          AL ENTRAR ACEPTAS LOS TÉRMINOS DEL SALÓN ARCADE
+          <div className="detail-actions">
+            <button className="btn xl pulse" onClick={() => navigate({ name: "player", id: game.id })}>▶  JUGAR AHORA</button>
+            <button className="btn ghost lg" onClick={() => navigate({ name: "biblioteca" })}>VOLVER AL VAULT</button>
+          </div>
         </div>
       </div>
+
+      <aside>
+        <div className="leaderboard">
+          <h3>MEJORES PUNTUACIONES</h3>
+          {scores.map((r, i) => (
+            <div key={r.name} className={"lb-row" + (i === 0 ? " top1" : i === 1 ? " top2" : i === 2 ? " top3" : "")}>
+              <div className="rk">#{String(r.rank).padStart(2, "0")}</div>
+              <div className="pl">{r.name}<div style={{ fontSize: 10, color: "var(--ink-faint)", letterSpacing: "0.1em" }}>{r.date}</div></div>
+              <div className="sc">{r.score.toLocaleString("es-ES")}</div>
+            </div>
+          ))}
+        </div>
+      </aside>
     </div>
   );
 }
 
-window.Auth = Auth;
+window.GameDetail = GameDetail;

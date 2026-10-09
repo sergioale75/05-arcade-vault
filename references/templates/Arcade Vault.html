@@ -1,91 +1,30 @@
-// ===== biblioteca.jsx =====
-const { useState: useStateB, useMemo: useMemoB } = React;
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Arcade Vault · Portal Retro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Courier+Prime:wght@400;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<div class="av-bg"></div>
+<div class="av-noise"></div>
+<div id="root"></div>
 
-function GameCard({ game, onSelect }) {
-  const tiltRef = React.useRef(null);
-  const onMove = (e) => {
-    const el = tiltRef.current; if (!el) return;
-    const r = el.getBoundingClientRect();
-    const px = (e.clientX - r.left) / r.width - 0.5;
-    const py = (e.clientY - r.top) / r.height - 0.5;
-    el.style.transform = `translateY(-6px) rotateX(${-py * 6}deg) rotateY(${px * 8}deg)`;
-  };
-  const onLeave = () => {
-    const el = tiltRef.current; if (!el) return;
-    el.style.transform = "";
-  };
-  return (
-    <div
-      ref={tiltRef}
-      className="card"
-      onMouseMove={onMove}
-      onMouseLeave={onLeave}
-      onClick={() => onSelect(game)}
-    >
-      <div className="cover">
-        <div className={"cover-bg " + game.cover}></div>
-        <div className="label">{game.cat}</div>
-      </div>
-      <div className="meta">
-        <div className="title">{game.title}</div>
-        <div className="desc">{game.short}</div>
-        <div className="row">
-          <div className="score-badge">
-            <span>MEJOR PUNTUACIÓN</span>
-            <b>{game.best.toLocaleString("es-ES")}</b>
-          </div>
-          <button className={"btn " + (game.color === "magenta" ? "magenta" : game.color === "yellow" ? "yellow" : "")}
-            onClick={(e) => { e.stopPropagation(); onSelect(game); }}>JUGAR</button>
-        </div>
-      </div>
-    </div>
-  );
-}
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
 
-function Library({ navigate }) {
-  const [q, setQ] = useStateB("");
-  const [cat, setCat] = useStateB("TODOS");
-
-  const filtered = useMemoB(() => {
-    return GAMES.filter(g => (cat === "TODOS" || g.cat === cat) && g.title.toLowerCase().includes(q.toLowerCase()));
-  }, [q, cat]);
-
-  return (
-    <div className="fade-in">
-      <section className="av-hero">
-        <h1 className="flicker">ARCADE VAULT</h1>
-        <div className="sub">INSERTA UNA MONEDA PARA JUGAR <span className="blink">_</span></div>
-      </section>
-
-      <div className="av-filters">
-        <div className="av-search">
-          <span className="ico">⌕</span>
-          <input
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            placeholder="Buscar un juego por nombre…"
-          />
-        </div>
-        <div className="av-chips">
-          {CATS.map(c => (
-            <button key={c} className={"chip" + (cat === c ? " active" : "")} onClick={() => setCat(c)}>{c}</button>
-          ))}
-        </div>
-      </div>
-
-      <div className="av-grid">
-        {filtered.map(g => (
-          <GameCard key={g.id} game={g} onSelect={(game) => navigate({ name: "detalle", id: game.id })} />
-        ))}
-        {filtered.length === 0 && (
-          <div style={{ gridColumn: "1 / -1", textAlign: "center", padding: 80, color: "var(--ink-faint)" }}>
-            <div className="pixel" style={{ fontSize: 14, color: "var(--magenta)", marginBottom: 12 }}>NO HAY RESULTADOS</div>
-            <div>Intenta otra búsqueda o categoría.</div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-window.Library = Library;
+<script type="text/babel" src="data.jsx"></script>
+<script type="text/babel" src="nav.jsx"></script>
+<script type="text/babel" src="biblioteca.jsx"></script>
+<script type="text/babel" src="detalle.jsx"></script>
+<script type="text/babel" src="reproductor.jsx"></script>
+<script type="text/babel" src="auth.jsx"></script>
+<script type="text/babel" src="salon.jsx"></script>
+<script type="text/babel" src="app.jsx"></script>
+</body>
+</html>

@@ -1,30 +1,51 @@
-<!doctype html>
-<html lang="es">
-<head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Arcade Vault · Portal Retro</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Courier+Prime:wght@400;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css" />
-</head>
-<body>
-<div class="av-bg"></div>
-<div class="av-noise"></div>
-<div id="root"></div>
+// ===== app.jsx =====
+const { useState: useStateApp, useEffect: useEffectApp } = React;
 
-<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
-<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
-<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+function App() {
+  const [route, setRoute] = useStateApp(() => {
+    try {
+      const h = location.hash.replace(/^#/, "");
+      if (h) return JSON.parse(decodeURIComponent(h));
+    } catch (e) {}
+    return { name: "biblioteca" };
+  });
+  const [user, setUser] = useStateApp(() => {
+    try { return JSON.parse(localStorage.getItem("av_user") || "null"); } catch (e) { return null; }
+  });
 
-<script type="text/babel" src="data.jsx"></script>
-<script type="text/babel" src="nav.jsx"></script>
-<script type="text/babel" src="biblioteca.jsx"></script>
-<script type="text/babel" src="detalle.jsx"></script>
-<script type="text/babel" src="reproductor.jsx"></script>
-<script type="text/babel" src="auth.jsx"></script>
-<script type="text/babel" src="salon.jsx"></script>
-<script type="text/babel" src="app.jsx"></script>
-</body>
-</html>
+  useEffectApp(() => {
+    location.hash = encodeURIComponent(JSON.stringify(route));
+    window.scrollTo({ top: 0, behavior: "instant" });
+  }, [route]);
+
+  const navigate = (r) => setRoute(r);
+  const handleLogin = (u) => { setUser(u); localStorage.setItem("av_user", JSON.stringify(u)); };
+  const handleSignOut = () => { setUser(null); localStorage.removeItem("av_user"); };
+  const handleSaveScore = (entry) => {
+    try {
+      const all = JSON.parse(localStorage.getItem("av_scores") || "[]");
+      all.push({ ...entry, at: Date.now() });
+      localStorage.setItem("av_scores", JSON.stringify(all));
+    } catch (e) {}
+  };
+
+  let screen = null;
+  if (route.name === "biblioteca") screen = <Library navigate={navigate} />;
+  else if (route.name === "detalle") screen = <GameDetail id={route.id} navigate={navigate} />;
+  else if (route.name === "player") screen = <GamePlayer id={route.id} user={user} navigate={navigate} onSaveScore={handleSaveScore} />;
+  else if (route.name === "auth") screen = <Auth navigate={navigate} onLogin={handleLogin} />;
+  else if (route.name === "salon") screen = <HallOfFame user={user} navigate={navigate} />;
+
+  return (
+    <React.Fragment>
+      <Nav route={route} navigate={navigate} user={user} onSignOut={handleSignOut} />
+      <main className="av-main">{screen}</main>
+      <footer style={{ borderTop: "1px solid var(--line)", padding: "20px 32px", textAlign: "center", color: "var(--ink-faint)", fontFamily: "var(--mono)", fontSize: 11, letterSpacing: "0.16em" }}>
+        © 2026 ARCADE VAULT · HECHO CON PIXELES Y NEÓN · v2.6.0
+      </footer>
+    </React.Fragment>
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(<App />);
